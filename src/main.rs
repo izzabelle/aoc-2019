@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         2 => {
             if !opt.part {
-                days::day_one::part_one();
+                days::day_two::part_one();
             } else {
                 days::day_two::part_two();
             }
