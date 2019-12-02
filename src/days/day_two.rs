@@ -15,23 +15,37 @@ impl IntCodeComputer {
         Self { ip: 0, memory_backup: memory.clone(), memory, halt: false }
     }
 
+    #[inline]
     fn step(&mut self) {
         self.ip += 4;
+    }
+
+    #[inline]
+    fn get_params(&self) -> [usize; 3] {
+        [self.memory[self.ip + 1], self.memory[self.ip + 2], self.memory[self.ip + 3]]
+    }
+
+    #[inline]
+    fn load(&self, addr: usize) -> usize {
+        self.memory[addr]
+    }
+
+    #[inline]
+    fn save(&mut self, addr: usize, contents: usize) {
+        self.memory[addr] = contents;
     }
 
     fn process(&mut self) {
         match self.memory[self.ip] {
             1 => {
-                let a = self.memory[self.memory[self.ip + 1]];
-                let b = self.memory[self.memory[self.ip + 2]];
-                let dest = self.memory[self.ip + 3];
-                self.memory[dest] = a + b;
+                let p = self.get_params();
+                let (a, b) = (self.load(p[0]), self.load(p[1]));
+                self.save(p[2], a + b)
             }
             2 => {
-                let a = self.memory[self.memory[self.ip + 1]];
-                let b = self.memory[self.memory[self.ip + 2]];
-                let dest = self.memory[self.ip + 3];
-                self.memory[dest] = a * b;
+                let p = self.get_params();
+                let (a, b) = (self.load(p[0]), self.load(p[1]));
+                self.save(p[2], a * b)
             }
             99 => {
                 println!("Program Halted at instruction: {}", self.ip);
