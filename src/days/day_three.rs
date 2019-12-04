@@ -35,8 +35,14 @@ impl Wire {
     }
 }
 
+#[derive(Clone, Copy)]
+enum PlotCell {
+    WireOne,
+    WireTwo,
+}
+
 struct WirePlot {
-    plot: HashMap<(isize, isize), usize>,
+    plot: HashMap<(isize, isize), Vec<PlotCell>>,
     working_endpoint: (isize, isize),
 }
 
@@ -45,7 +51,7 @@ impl WirePlot {
         Self { plot: HashMap::new(), working_endpoint: (0, 0) }
     }
 
-    fn plot(&mut self, wire: &Wire) {
+    fn plot(&mut self, wire: &Wire, wire_num: PlotCell) {
         self.working_endpoint = (0, 0);
 
         wire.0.iter().for_each(|segment| {
@@ -56,9 +62,9 @@ impl WirePlot {
                     for y in start.1..(start.1 + *dist as isize) {
                         let cell = self.plot.get_mut(&(start.0, y));
                         match cell {
-                            Some(cell) => *cell += 1,
+                            Some(cell) => cell.push(wire_num),
                             None => {
-                                self.plot.insert((start.0, y), 1);
+                                self.plot.insert((start.0, y), vec![wire_num]);
                             }
                         }
                     }
@@ -68,9 +74,9 @@ impl WirePlot {
                     for y in (start.1 - *dist as isize)..start.1 {
                         let cell = self.plot.get_mut(&(start.0, y));
                         match cell {
-                            Some(cell) => *cell += 1,
+                            Some(cell) => cell.push(wire_num),
                             None => {
-                                self.plot.insert((start.0, y), 1);
+                                self.plot.insert((start.0, y), vec![wire_num]);
                             }
                         }
                     }
@@ -80,9 +86,9 @@ impl WirePlot {
                     for x in (start.0 - *dist as isize)..start.0 {
                         let cell = self.plot.get_mut(&(x, start.1));
                         match cell {
-                            Some(cell) => *cell += 1,
+                            Some(cell) => cell.push(wire_num),
                             None => {
-                                self.plot.insert((x, start.1), 1);
+                                self.plot.insert((x, start.1), vec![wire_num]);
                             }
                         }
                     }
@@ -92,9 +98,9 @@ impl WirePlot {
                     for x in start.0..(start.0 + *dist as isize) {
                         let cell = self.plot.get_mut(&(x, start.1));
                         match cell {
-                            Some(cell) => *cell += 1,
+                            Some(cell) => cell.push(wire_num),
                             None => {
-                                self.plot.insert((x, start.1), 1);
+                                self.plot.insert((x, start.1), vec![wire_num]);
                             }
                         }
                     }
@@ -106,9 +112,16 @@ impl WirePlot {
 
     fn get_intersects(&self) -> Vec<(isize, isize)> {
         let mut intersects: Vec<(isize, isize)> = Vec::new();
-        self.plot.iter().for_each(|(loc, count)| {
-            if count > &1 {
-                intersects.push(*loc)
+        self.plot.iter().for_each(|(loc, cell)| {
+            if cell.len() > 1 {
+                let (mut i, mut j) = (0, 0);
+                cell.iter().for_each(|wire| match wire {
+                    PlotCell::WireOne => i += 1,
+                    PlotCell::WireTwo => j += 1,
+                });
+                if i != 0 && j != 0 {
+                    intersects.push(*loc)
+                }
             }
         });
         intersects
@@ -131,8 +144,8 @@ fn closest_distance(points: Vec<(isize, isize)>) -> usize {
 pub fn part_one() {
     let wires = Wire::init();
     let mut plot = WirePlot::init();
-    plot.plot(&wires.0);
-    plot.plot(&wires.1);
+    plot.plot(&wires.0, PlotCell::WireOne);
+    plot.plot(&wires.1, PlotCell::WireTwo);
     println!("{:?}", closest_distance(plot.get_intersects()));
 }
 
