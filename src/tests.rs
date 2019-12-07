@@ -1,8 +1,8 @@
-use advent_of_code::IntCodeComputer;
+#[cfg(test)]
+use crate::IntCodeComputer;
 
-pub fn part_one() {
-    let timer = std::time::Instant::now();
-
+#[test]
+fn day_two_part_one() {
     let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_two"), Vec::new());
 
     comp.memory[1] = 12;
@@ -15,14 +15,11 @@ pub fn part_one() {
         }
     }
 
-    println!("memory addr 0 conts: {}", comp.memory[0]);
-
-    println!("execution time: {}ms", timer.elapsed().as_millis());
+    assert_eq!(10566835, comp.memory[0]);
 }
 
-pub fn part_two() {
-    let timer = std::time::Instant::now();
-
+#[test]
+fn day_two_part_two() {
     let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_two"), Vec::new());
 
     let mut result: isize = 0;
@@ -53,7 +50,31 @@ pub fn part_two() {
         }
     }
 
-    println!("result: {}", result);
+    assert_eq!(result, 2347);
+}
 
-    println!("execution time: {}ms", timer.elapsed().as_millis());
+#[test]
+fn day_five_part_one() {
+    let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_five"), vec![1]);
+    loop {
+        comp.process();
+        if comp.halted {
+            break;
+        }
+    }
+
+    assert_eq!(comp.output_buffer[comp.output_buffer.len() - 1], 12440243);
+}
+
+#[test]
+fn day_five_part_two() {
+    let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_five"), vec![5]);
+    loop {
+        comp.process();
+        if comp.halted {
+            break;
+        }
+    }
+
+    assert_eq!(comp.output_buffer[comp.output_buffer.len() - 1], 15486302);
 }

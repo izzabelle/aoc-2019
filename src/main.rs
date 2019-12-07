@@ -68,6 +68,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
+        7 => {
+            if !opt.part {
+                days::day_six::part_one();
+            } else {
+                days::day_six::part_two();
+            }
+        }
+
         _ => {
             println!("day {} is either not valid or incomplete", day);
         }
