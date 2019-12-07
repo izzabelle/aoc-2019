@@ -66,12 +66,12 @@ impl IntCodeComputer {
                 let a = match modes[0] {
                     0 => self.memory[self.memory[self.ip + 1] as usize],
                     1 => self.memory[self.ip + 1],
-                    _ => panic!("uh oh"),
+                    _ => panic!("invalid parameter mode!"),
                 };
-                let b = match modes[0] {
+                let b = match modes[1] {
                     0 => self.memory[self.memory[self.ip + 2] as usize],
                     1 => self.memory[self.ip + 2],
-                    _ => panic!("uh oh"),
+                    _ => panic!("invalid parameter mode!"),
                 };
                 let dest = self.memory[self.ip + 3] as usize;
                 self.memory[dest] = a + b;
@@ -82,12 +82,12 @@ impl IntCodeComputer {
                 let a = match modes[0] {
                     0 => self.memory[self.memory[self.ip + 1] as usize],
                     1 => self.memory[self.ip + 1],
-                    _ => panic!("uh oh"),
+                    _ => panic!("invalid parameter mode!"),
                 };
-                let b = match modes[0] {
+                let b = match modes[1] {
                     0 => self.memory[self.memory[self.ip + 2] as usize],
                     1 => self.memory[self.ip + 2],
-                    _ => panic!("uh oh"),
+                    _ => panic!("invalid parameter mode!"),
                 };
                 let dest = self.memory[self.ip + 3] as usize;
                 self.memory[dest] = a * b;
@@ -109,10 +109,89 @@ impl IntCodeComputer {
                 self.output_buffer.push(self.memory[source]);
                 self.ip += 2;
             }
+            // jt
+            5 => {
+                let cmp = match modes[0] {
+                    0 => self.memory[self.memory[self.ip + 1] as usize],
+                    1 => self.memory[self.ip + 1],
+                    _ => panic!("invalid parameter mode!"),
+                };
+                let dest = match modes[1] {
+                    0 => self.memory[self.memory[self.ip + 2] as usize] as usize,
+                    1 => self.memory[self.ip + 2] as usize,
+                    _ => panic!("invalid parameter mode!"),
+                };
+
+                if cmp != 0 {
+                    self.ip = dest;
+                } else {
+                    self.ip += 3;
+                }
+            }
+            // jf
+            6 => {
+                let cmp = match modes[0] {
+                    0 => self.memory[self.memory[self.ip + 1] as usize],
+                    1 => self.memory[self.ip + 1],
+                    _ => panic!("invalid parameter mode!"),
+                };
+                let dest = match modes[1] {
+                    0 => self.memory[self.memory[self.ip + 2] as usize] as usize,
+                    1 => self.memory[self.ip + 2] as usize,
+                    _ => panic!("invalid parameter mode!"),
+                };
+
+                if cmp == 0 {
+                    self.ip = dest;
+                } else {
+                    self.ip += 3;
+                }
+            }
+            // lt
+            7 => {
+                let cmp_one = match modes[0] {
+                    0 => self.memory[self.memory[self.ip + 1] as usize],
+                    1 => self.memory[self.ip + 1],
+                    _ => panic!("invalid parameter mode!"),
+                };
+                let cmp_two = match modes[1] {
+                    0 => self.memory[self.memory[self.ip + 2] as usize],
+                    1 => self.memory[self.ip + 2],
+                    _ => panic!("invalid parameter mode!"),
+                };
+                let dest = self.memory[self.ip + 3] as usize;
+                if cmp_one < cmp_two {
+                    self.memory[dest] = 1;
+                } else {
+                    self.memory[dest] = 0;
+                }
+                self.ip += 4;
+            }
+            // eq
+            8 => {
+                let cmp_one = match modes[0] {
+                    0 => self.memory[self.memory[self.ip + 1] as usize],
+                    1 => self.memory[self.ip + 1],
+                    _ => panic!("invalid parameter mode!"),
+                };
+                let cmp_two = match modes[1] {
+                    0 => self.memory[self.memory[self.ip + 2] as usize],
+                    1 => self.memory[self.ip + 2],
+                    _ => panic!("invalid parameter mode!"),
+                };
+                let dest = self.memory[self.ip + 3] as usize;
+                if cmp_one == cmp_two {
+                    self.memory[dest] = 1;
+                } else {
+                    self.memory[dest] = 0;
+                }
+                self.ip += 4;
+            }
             // hlt
             99 => {
                 self.halted = true;
             }
+
             // unrecognized opcode
             _ => {
                 eprintln!("!!! Unrecognized opcode at instruction: {}", self.ip);
@@ -145,22 +224,31 @@ pub fn part_one() {
 
     let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_five"), vec![1]);
     loop {
-        comp.debug_print();
         comp.process();
         if comp.halted {
             break;
         }
     }
 
-    println!("execution time: {}ms", timer.elapsed().as_millis());
+    println!("diagnostic code: {}", comp.output_buffer[comp.output_buffer.len() - 1]);
+
+    println!("execution time: {}us", timer.elapsed().as_micros());
 }
 
 pub fn part_two() {
     let timer = std::time::Instant::now();
 
-    //code here
+    let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_five"), vec![5]);
+    loop {
+        comp.process();
+        if comp.halted {
+            break;
+        }
+    }
 
-    println!("execution time: {}ms", timer.elapsed().as_millis());
+    println!("diagnostic code: {}", comp.output_buffer[comp.output_buffer.len() - 1]);
+
+    println!("execution time: {}us", timer.elapsed().as_micros());
 }
 
 #[cfg(test)]
