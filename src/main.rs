@@ -76,6 +76,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
+        99 => {
+            advent_of_code::tests::run_all_timed();
+        }
+
         _ => {
             println!("day {} is either not valid or incomplete", day);
         }
