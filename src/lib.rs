@@ -46,7 +46,7 @@ impl IntCodeComputer {
     }
 
     /// converts an opcodes first three digits into usable parameter mode information
-    pub fn modes(modes: usize) -> [usize; 3] {
+    fn modes(modes: usize) -> [usize; 3] {
         let mut modes = modes.clone();
         let mut modes_arr = [0; 3];
         modes_arr[0] = modes % 10;
@@ -57,6 +57,48 @@ impl IntCodeComputer {
         modes_arr
     }
 
+    /// loads parameter from memory given offset from instruction pointer and mode
+    #[inline]
+    fn load_parameter(&self, mode: usize, offset: usize) -> isize {
+        match mode {
+            0 => self.memory[self.memory[self.ip + offset] as usize],
+            1 => self.memory[self.ip + offset],
+            _ => panic!("invalid parameter mode!"),
+        }
+    }
+
+    /// loads input from input buffer
+    #[inline]
+    fn take_input(&mut self) -> isize {
+        match self.input_buffer.pop() {
+            Some(input) => input,
+            None => panic!("input buffer is empty!"),
+        }
+    }
+
+    /// writes output to output buffer
+    #[inline]
+    fn write_output(&mut self, data: isize) {
+        self.output_buffer.push(data);
+    }
+
+    /// step amount forward in memory
+    #[inline]
+    fn step(&mut self, amount: usize) {
+        self.ip += amount;
+    }
+
+    /// jump to address in memory
+    #[inline]
+    fn jump(&mut self, address: usize) {
+        self.ip = address
+    }
+
+    /// set given address to given contents
+    pub fn set_addr(&mut self, address: usize, contents: isize) {
+        self.memory[address] = contents;
+    }
+
     /// process the machine code
     pub fn process(&mut self) {
         let instruction = self.memory[self.ip] % 100;
@@ -65,135 +107,76 @@ impl IntCodeComputer {
         match instruction {
             // add
             1 => {
-                let a = match modes[0] {
-                    0 => self.memory[self.memory[self.ip + 1] as usize],
-                    1 => self.memory[self.ip + 1],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let b = match modes[1] {
-                    0 => self.memory[self.memory[self.ip + 2] as usize],
-                    1 => self.memory[self.ip + 2],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let dest = self.memory[self.ip + 3] as usize;
-
+                let a = self.load_parameter(modes[0], 1);
+                let b = self.load_parameter(modes[1], 2);
+                let dest = self.load_parameter(1, 3) as usize;
                 self.memory[dest] = a + b;
-                self.ip += 4;
+                self.step(4);
             }
             // mul
             2 => {
-                let a = match modes[0] {
-                    0 => self.memory[self.memory[self.ip + 1] as usize],
-                    1 => self.memory[self.ip + 1],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let b = match modes[1] {
-                    0 => self.memory[self.memory[self.ip + 2] as usize],
-                    1 => self.memory[self.ip + 2],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let dest = self.memory[self.ip + 3] as usize;
-
+                let a = self.load_parameter(modes[0], 1);
+                let b = self.load_parameter(modes[1], 2);
+                let dest = self.load_parameter(1, 3) as usize;
                 self.memory[dest] = a * b;
-                self.ip += 4;
+                self.step(4);
             }
             // inp
             3 => {
-                let input = match self.input_buffer.pop() {
-                    Some(input) => input,
-                    None => panic!("input buffer is empty!"),
-                };
-                let dest = self.memory[self.ip + 1] as usize;
-
+                let input = self.take_input();
+                let dest = self.load_parameter(1, 1) as usize;
                 self.memory[dest] = input;
-                self.ip += 2;
+                self.step(2);
             }
-            // str
+            // out
             4 => {
-                let source = self.memory[self.ip + 1] as usize;
-
-                self.output_buffer.push(self.memory[source]);
-                self.ip += 2;
+                let source = self.load_parameter(1, 1) as usize;
+                self.write_output(self.memory[source]);
+                self.step(2);
             }
             // jt
             5 => {
-                let cmp = match modes[0] {
-                    0 => self.memory[self.memory[self.ip + 1] as usize],
-                    1 => self.memory[self.ip + 1],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let dest = match modes[1] {
-                    0 => self.memory[self.memory[self.ip + 2] as usize] as usize,
-                    1 => self.memory[self.ip + 2] as usize,
-                    _ => panic!("invalid parameter mode!"),
-                };
-
+                let cmp = self.load_parameter(modes[0], 1);
+                let dest = self.load_parameter(modes[1], 2) as usize;
                 if cmp != 0 {
-                    self.ip = dest;
+                    self.jump(dest);
                 } else {
-                    self.ip += 3;
+                    self.step(3);
                 }
             }
             // jf
             6 => {
-                let cmp = match modes[0] {
-                    0 => self.memory[self.memory[self.ip + 1] as usize],
-                    1 => self.memory[self.ip + 1],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let dest = match modes[1] {
-                    0 => self.memory[self.memory[self.ip + 2] as usize] as usize,
-                    1 => self.memory[self.ip + 2] as usize,
-                    _ => panic!("invalid parameter mode!"),
-                };
-
+                let cmp = self.load_parameter(modes[0], 1);
+                let dest = self.load_parameter(modes[1], 2) as usize;
                 if cmp == 0 {
-                    self.ip = dest;
+                    self.jump(dest);
                 } else {
-                    self.ip += 3;
+                    self.step(3);
                 }
             }
             // lt
             7 => {
-                let cmp_one = match modes[0] {
-                    0 => self.memory[self.memory[self.ip + 1] as usize],
-                    1 => self.memory[self.ip + 1],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let cmp_two = match modes[1] {
-                    0 => self.memory[self.memory[self.ip + 2] as usize],
-                    1 => self.memory[self.ip + 2],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let dest = self.memory[self.ip + 3] as usize;
-
+                let cmp_one = self.load_parameter(modes[0], 1);
+                let cmp_two = self.load_parameter(modes[1], 2);
+                let dest = self.load_parameter(1, 3) as usize;
                 if cmp_one < cmp_two {
-                    self.memory[dest] = 1;
+                    self.set_addr(dest, 1);
                 } else {
-                    self.memory[dest] = 0;
+                    self.set_addr(dest, 0);
                 }
-                self.ip += 4;
+                self.step(4);
             }
             // eq
             8 => {
-                let cmp_one = match modes[0] {
-                    0 => self.memory[self.memory[self.ip + 1] as usize],
-                    1 => self.memory[self.ip + 1],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let cmp_two = match modes[1] {
-                    0 => self.memory[self.memory[self.ip + 2] as usize],
-                    1 => self.memory[self.ip + 2],
-                    _ => panic!("invalid parameter mode!"),
-                };
-                let dest = self.memory[self.ip + 3] as usize;
-
+                let cmp_one = self.load_parameter(modes[0], 1);
+                let cmp_two = self.load_parameter(modes[1], 2);
+                let dest = self.load_parameter(1, 3) as usize;
                 if cmp_one == cmp_two {
-                    self.memory[dest] = 1;
+                    self.set_addr(dest, 1);
                 } else {
-                    self.memory[dest] = 0;
+                    self.set_addr(dest, 0);
                 }
-                self.ip += 4;
+                self.step(4);
             }
             // hlt
             99 => {
@@ -202,7 +185,8 @@ impl IntCodeComputer {
 
             // unrecognized opcode
             _ => {
-                eprintln!("!!! Unrecognized opcode at instruction: {}", self.ip);
+                println!("================================================================================");
+                eprintln!("!!! Unrecognized opcode at instruction: {} !!!", self.ip);
                 self.halted = true;
                 self.debug_print();
             }

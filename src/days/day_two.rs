@@ -5,8 +5,8 @@ pub fn part_one() {
 
     let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_two"), Vec::new());
 
-    comp.memory[1] = 12;
-    comp.memory[2] = 02;
+    comp.set_addr(1, 12);
+    comp.set_addr(2, 02);
 
     loop {
         comp.process();
@@ -29,8 +29,8 @@ pub fn part_two() {
 
     for noun in 0..99 {
         for verb in 0..99 {
-            comp.memory[1] = noun;
-            comp.memory[2] = verb;
+            comp.set_addr(1, noun);
+            comp.set_addr(2, verb);
 
             loop {
                 comp.process();

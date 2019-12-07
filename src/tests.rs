@@ -4,8 +4,8 @@ use crate::IntCodeComputer;
 fn day_two_part_one() {
     let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_two"), Vec::new());
 
-    comp.memory[1] = 12;
-    comp.memory[2] = 02;
+    comp.set_addr(1, 12);
+    comp.set_addr(2, 2);
 
     loop {
         comp.process();
@@ -25,8 +25,8 @@ fn day_two_part_two() {
 
     for noun in 0..99 {
         for verb in 0..99 {
-            comp.memory[1] = noun;
-            comp.memory[2] = verb;
+            comp.set_addr(1, noun);
+            comp.set_addr(2, verb);
 
             loop {
                 comp.process();
@@ -84,8 +84,8 @@ pub fn run_all_timed() {
     let timer = std::time::Instant::now();
     let mut comp = IntCodeComputer::init(std::path::PathBuf::from("./inputs/day_two"), Vec::new());
 
-    comp.memory[1] = 12;
-    comp.memory[2] = 02;
+    comp.set_addr(1, 12);
+    comp.set_addr(2, 2);
 
     loop {
         comp.process();
@@ -106,8 +106,8 @@ pub fn run_all_timed() {
 
     for noun in 0..99 {
         for verb in 0..99 {
-            comp.memory[1] = noun;
-            comp.memory[2] = verb;
+            comp.set_addr(1, noun);
+            comp.set_addr(2, verb);
 
             loop {
                 comp.process();
