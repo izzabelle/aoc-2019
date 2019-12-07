@@ -95,7 +95,7 @@ pub fn run_all_timed() {
     }
 
     println!("memory addr 0 conts: {}", comp.memory[0]);
-    println!("execution time: {}ms", timer.elapsed().as_micros());
+    println!("execution time: {}us", timer.elapsed().as_micros());
     println!("================================================================================\n");
     println!("day two part two");
     println!("================================================================================");
