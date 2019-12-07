@@ -51,6 +51,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 days::day_four::part_two();
             }
         }
+
+        5 => {
+            if !opt.part {
+                days::day_five::part_one();
+            } else {
+                days::day_five::part_two();
+            }
+        }
+
         _ => {
             println!("day {} is either not valid or incomplete", day);
         }
