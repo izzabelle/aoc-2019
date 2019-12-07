@@ -12,13 +12,12 @@ pub struct IntCodeComputer {
     pub input_buffer: Vec<isize>,
 }
 
-#[allow(dead_code)]
 impl IntCodeComputer {
+    /// initializes the computer and loads a program to memory
     pub fn init(program: std::path::PathBuf, inputs: Vec<isize>) -> Self {
         let raw_data = std::fs::read_to_string(program).unwrap();
-        let mut memory: Vec<isize> =
-            raw_data.rsplit(",").map(|opcode| opcode.trim().parse::<isize>().unwrap()).collect();
-        memory.reverse();
+        let memory: Vec<isize> =
+            raw_data.split(",").map(|opcode| opcode.trim().parse::<isize>().unwrap()).collect();
         Self {
             ip: 0,
             memory_backup: memory.clone(),
@@ -29,21 +28,7 @@ impl IntCodeComputer {
         }
     }
 
-    #[inline]
-    pub fn step(&mut self, amount: usize) {
-        self.ip += amount;
-    }
-
-    #[inline]
-    pub fn load(&self, addr: isize) -> isize {
-        self.memory[addr as usize]
-    }
-
-    #[inline]
-    pub fn save(&mut self, addr: isize, contents: isize) {
-        self.memory[addr as usize] = contents;
-    }
-
+    /// prints computer information: instruction pointer, buffers, system halt state, and memory dump
     pub fn debug_print(&self) {
         println!(
             "================================================================================"
@@ -60,6 +45,7 @@ impl IntCodeComputer {
         );
     }
 
+    /// converts an opcodes first three digits into usable parameter mode information
     pub fn modes(modes: usize) -> [usize; 3] {
         let mut modes = modes.clone();
         let mut modes_arr = [0; 3];
@@ -71,6 +57,7 @@ impl IntCodeComputer {
         modes_arr
     }
 
+    /// process the machine code
     pub fn process(&mut self) {
         let instruction = self.memory[self.ip] % 100;
         let modes = IntCodeComputer::modes((self.memory[self.ip] / 100) as usize);
@@ -89,6 +76,7 @@ impl IntCodeComputer {
                     _ => panic!("invalid parameter mode!"),
                 };
                 let dest = self.memory[self.ip + 3] as usize;
+
                 self.memory[dest] = a + b;
                 self.ip += 4;
             }
@@ -105,6 +93,7 @@ impl IntCodeComputer {
                     _ => panic!("invalid parameter mode!"),
                 };
                 let dest = self.memory[self.ip + 3] as usize;
+
                 self.memory[dest] = a * b;
                 self.ip += 4;
             }
@@ -115,12 +104,14 @@ impl IntCodeComputer {
                     None => panic!("input buffer is empty!"),
                 };
                 let dest = self.memory[self.ip + 1] as usize;
+
                 self.memory[dest] = input;
                 self.ip += 2;
             }
             // str
             4 => {
                 let source = self.memory[self.ip + 1] as usize;
+
                 self.output_buffer.push(self.memory[source]);
                 self.ip += 2;
             }
@@ -175,6 +166,7 @@ impl IntCodeComputer {
                     _ => panic!("invalid parameter mode!"),
                 };
                 let dest = self.memory[self.ip + 3] as usize;
+
                 if cmp_one < cmp_two {
                     self.memory[dest] = 1;
                 } else {
@@ -195,6 +187,7 @@ impl IntCodeComputer {
                     _ => panic!("invalid parameter mode!"),
                 };
                 let dest = self.memory[self.ip + 3] as usize;
+
                 if cmp_one == cmp_two {
                     self.memory[dest] = 1;
                 } else {
@@ -216,6 +209,7 @@ impl IntCodeComputer {
         }
     }
 
+    /// resets the computer back to it's initial state having just loaded the program to memory
     pub fn reset(&mut self) {
         self.ip = 0;
         self.memory = self.memory_backup.clone();
