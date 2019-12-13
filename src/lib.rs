@@ -2,7 +2,7 @@
 pub mod tests;
 
 // intcode computer struct
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IntCodeComputer {
     pub memory: Vec<isize>,
     pub memory_backup: Vec<isize>,
@@ -10,6 +10,7 @@ pub struct IntCodeComputer {
     pub halted: bool,
     pub output_buffer: Vec<isize>,
     pub input_buffer: Vec<isize>,
+    pub resets: usize,
 }
 
 impl IntCodeComputer {
@@ -25,6 +26,7 @@ impl IntCodeComputer {
             halted: false,
             input_buffer: inputs,
             output_buffer: Vec::new(),
+            resets: 0,
         }
     }
 
@@ -33,6 +35,7 @@ impl IntCodeComputer {
         println!(
             "================================================================================"
         );
+        println!("resets: {}", self.resets);
         println!("instruction pointer: {}", self.ip);
         println!("input buffer: {:?}\noutput buffer: {:?}", self.input_buffer, self.output_buffer);
         println!("system halted: {}", self.halted);
@@ -95,6 +98,7 @@ impl IntCodeComputer {
     }
 
     /// set given address to given contents
+    #[inline]
     pub fn set_addr(&mut self, address: usize, contents: isize) {
         self.memory[address] = contents;
     }
@@ -197,6 +201,9 @@ impl IntCodeComputer {
     pub fn reset(&mut self) {
         self.ip = 0;
         self.memory = self.memory_backup.clone();
+        self.output_buffer.clear();
+        self.input_buffer.clear();
         self.halted = false;
+        self.resets += 1;
     }
 }

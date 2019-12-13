@@ -3,7 +3,7 @@ pub fn part_one() {
 
     // code here
 
-    println!("execution time: {}ms", timer.elapsed().as_millis());
+    println!("execution time: {}us", timer.elapsed().as_micros());
 }
 
 pub fn part_two() {
@@ -11,5 +11,5 @@ pub fn part_two() {
 
     //code here
 
-    println!("execution time: {}ms", timer.elapsed().as_millis());
+    println!("execution time: {}us", timer.elapsed().as_micros());
 }
